@@ -1,11 +1,32 @@
 import React, { useState } from 'react';
 import { Icon, Waveform } from '../lib/primitives.jsx';
 import { ALPHABET, DIALOGS } from '../lib/data.js';
+import { speak, cancelSpeech } from '../lib/audio.js';
 
 export default function Sounds() {
   const [tab, setTab] = useState('alphabet');
   const [playGlyph, setPlayGlyph] = useState(null);
   const [playDialog, setPlayDialog] = useState(null);
+
+  function handleGlyph(g) {
+    if (playGlyph === g.glyph) {
+      cancelSpeech();
+      setPlayGlyph(null);
+      return;
+    }
+    setPlayGlyph(g.glyph);
+    speak(g.sound, { rate: 0.7, onEnd: () => setPlayGlyph(p => (p === g.glyph ? null : p)) });
+  }
+
+  function handleDialog(d) {
+    if (playDialog === d.id) {
+      cancelSpeech();
+      setPlayDialog(null);
+      return;
+    }
+    setPlayDialog(d.id);
+    speak('ma arrik?', { onEnd: () => setPlayDialog(p => (p === d.id ? null : p)) });
+  }
 
   return (
     <div style={{ paddingBottom: 20 }}>
@@ -34,7 +55,7 @@ export default function Sounds() {
             {ALPHABET.map(g => {
               const active = playGlyph === g.glyph;
               return (
-                <button key={g.glyph} onClick={() => setPlayGlyph(active ? null : g.glyph)} style={{
+                <button key={g.glyph} onClick={() => handleGlyph(g)} style={{
                   aspectRatio: '1', borderRadius: 16,
                   background: active ? 'var(--accent)' : 'var(--surface)',
                   border: `1px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
@@ -80,7 +101,7 @@ export default function Sounds() {
                 transition: 'all 200ms',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <button onClick={() => setPlayDialog(active ? null : d.id)} style={{
+                  <button onClick={() => handleDialog(d)} style={{
                     width: 52, height: 52, borderRadius: '50%',
                     background: active ? 'var(--accent)' : 'var(--accent-soft)',
                     color: active ? 'white' : 'var(--accent)',

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Icon, Waveform, LiveWaveform } from '../lib/primitives.jsx';
+import { speak, cancelSpeech, useRecorder } from '../lib/audio.js';
 
 /* CHAT — talk to "Eeni", an AI tutor that replies from a memorized corpus. */
 
@@ -67,11 +68,11 @@ export default function Chat() {
     { who: 'ai', t: { script: 'ⲙⲁϣⲁ ⲥⲓⲣⲣⲓ!', nub: 'masha sirri!', en: "Good morning! I'm Eeni — I'll only reply in Nubian. Try saying hello." } },
   ]);
   const [input, setInput] = useState('');
-  const [recording, setRecording] = useState(false);
   const [showTranslation, setShowTranslation] = useState(true);
   const [thinking, setThinking] = useState(false);
-  const recordTimer = useRef();
   const scrollRef = useRef();
+  const { recording, audioUrl, error: recError, start: startRec, stop: stopRec, reset: resetRec } = useRecorder();
+  const sendAfterStopRef = useRef(false);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -84,24 +85,40 @@ export default function Chat() {
     setInput('');
     setThinking(true);
     setTimeout(() => {
-      setMessages(m => [...m, { who: 'ai', t: aiReply(trimmed) }]);
+      const reply = aiReply(trimmed);
+      setMessages(m => [...m, { who: 'ai', t: reply }]);
       setThinking(false);
+      speak(reply.nub);
     }, 700 + Math.random() * 500);
   }
 
+  // Once a recording finishes, surface it as a "voice" message and prompt Eeni
+  // with a sample phrase (no on-device ASR — we just give the user a way to
+  // converse and play back what they said).
+  useEffect(() => {
+    if (audioUrl && sendAfterStopRef.current) {
+      sendAfterStopRef.current = false;
+      const samples = ['masha sirri', 'ma arrik?', 'ashri'];
+      const phrase = samples[Math.floor(Math.random() * samples.length)];
+      setMessages(m => [...m, { who: 'me', t: { en: '🎙 (voice)', audio: audioUrl } }]);
+      setThinking(true);
+      setTimeout(() => {
+        const reply = aiReply(phrase);
+        setMessages(m => [...m, { who: 'ai', t: reply }]);
+        setThinking(false);
+        speak(reply.nub);
+        resetRec();
+      }, 700);
+    }
+  }, [audioUrl]);
+
   function toggleRecord() {
     if (recording) {
-      clearTimeout(recordTimer.current);
-      setRecording(false);
-      const samples = ['masha sirri', 'ma arrik?', 'ashri', 'I am hungry', 'tell me about my mother'];
-      send(samples[Math.floor(Math.random() * samples.length)]);
+      sendAfterStopRef.current = true;
+      stopRec();
     } else {
-      setRecording(true);
-      recordTimer.current = setTimeout(() => {
-        setRecording(false);
-        const samples = ['masha sirri', 'ma arrik?', 'ashri', 'I am hungry'];
-        send(samples[Math.floor(Math.random() * samples.length)]);
-      }, 2200);
+      cancelSpeech();
+      startRec();
     }
   }
 
@@ -232,8 +249,31 @@ export default function Chat() {
 
 function Bubble({ m, showTranslation }) {
   const [playing, setPlaying] = useState(false);
+  const audioElRef = useRef(null);
   const isMe = m.who === 'me';
   const t = m.t;
+
+  function togglePlay() {
+    if (playing) {
+      cancelSpeech();
+      if (audioElRef.current) { audioElRef.current.pause(); audioElRef.current = null; }
+      setPlaying(false);
+      return;
+    }
+    setPlaying(true);
+    if (t.audio) {
+      const a = new Audio(t.audio);
+      audioElRef.current = a;
+      const done = () => { setPlaying(false); audioElRef.current = null; };
+      a.addEventListener('ended', done);
+      a.addEventListener('error', done);
+      a.play().catch(done);
+    } else if (t.nub) {
+      speak(t.nub, { onEnd: () => setPlaying(false) });
+    } else {
+      setPlaying(false);
+    }
+  }
 
   if (isMe) {
     return (
@@ -242,7 +282,19 @@ function Bubble({ m, showTranslation }) {
           padding: '10px 14px', borderRadius: '20px 20px 4px 20px',
           background: 'var(--accent)', color: 'white',
           fontSize: 14, lineHeight: 1.4,
-        }}>{t.en}</div>
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          {t.audio && (
+            <button onClick={togglePlay} aria-label="Play recording" style={{
+              width: 28, height: 28, borderRadius: '50%',
+              background: 'rgba(255,255,255,0.25)', flexShrink: 0,
+              display: 'grid', placeItems: 'center', border: 'none',
+            }}>
+              <Icon name={playing ? 'pause' : 'play'} size={12} color="white" />
+            </button>
+          )}
+          <span>{t.en}</span>
+        </div>
       </div>
     );
   }
@@ -257,14 +309,14 @@ function Bubble({ m, showTranslation }) {
         <div style={{ fontSize: 13, fontFamily: 'var(--font-serif)', fontStyle: 'italic', color: 'var(--text-2)', marginTop: 4 }}>{t.nub}</div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10 }}>
-          <button onClick={() => setPlaying(p => !p)} style={{
+          <button onClick={togglePlay} style={{
             width: 30, height: 30, borderRadius: '50%',
             background: playing ? 'var(--accent)' : 'var(--accent-soft)',
             display: 'grid', placeItems: 'center', flexShrink: 0,
           }}>
             <Icon name={playing ? 'pause' : 'play'} size={12} color={playing ? 'white' : 'var(--accent)'} />
           </button>
-          <Waveform seed={t.nub.charCodeAt(0) || 5} bars={20} height={18} progress={playing ? 0.5 : 0} active={playing} color="var(--text-3)" />
+          <Waveform seed={(t.nub || 'a').charCodeAt(0) || 5} bars={20} height={18} progress={playing ? 1 : 0} active={playing} color="var(--text-3)" />
         </div>
 
         {showTranslation && (

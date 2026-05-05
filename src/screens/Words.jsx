@@ -1,11 +1,22 @@
 import React, { useState } from 'react';
 import { Icon, Waveform } from '../lib/primitives.jsx';
 import { DICT } from '../lib/data.js';
+import { speak, cancelSpeech } from '../lib/audio.js';
 
 export default function Words() {
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState('all');
   const [playing, setPlaying] = useState(null);
+
+  function handlePlay(w) {
+    if (playing === w.en) {
+      cancelSpeech();
+      setPlaying(null);
+      return;
+    }
+    setPlaying(w.en);
+    speak(w.nub, { onEnd: () => setPlaying(p => (p === w.en ? null : p)) });
+  }
 
   const filtered = DICT.filter(d => {
     if (filter !== 'all' && d.cat !== filter) return false;
@@ -60,7 +71,7 @@ export default function Words() {
             background: 'var(--surface)', border: '1px solid var(--border)',
             animationDelay: `${i * 30}ms`,
           }}>
-            <button onClick={() => setPlaying(playing === w.en ? null : w.en)} style={{
+            <button onClick={() => handlePlay(w)} style={{
               width: 42, height: 42, borderRadius: 14,
               background: playing === w.en ? 'var(--accent)' : 'var(--accent-soft)',
               color: playing === w.en ? 'white' : 'var(--accent-fg)',

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Icon, Waveform, LiveWaveform, RecordRing, NubianStrip } from '../lib/primitives.jsx';
 import { VOWELS, CONSONANTS, MINIMAL_PAIRS, SYLLABLES, WORDS, PHRASES } from '../lib/data.js';
+import { speak, cancelSpeech, useRecorder, playAudio } from '../lib/audio.js';
 
 /* LESSON — pedagogy loop: HEAR → DISTINGUISH → PRODUCE → READ → USE */
 
@@ -137,15 +138,14 @@ function SoundHear({ item, stage, onNext }) {
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   function play() {
-    setPlaying(true); setProgress(0);
-    const start = Date.now();
-    const id = setInterval(() => {
-      const t = (Date.now() - start) / 900;
-      if (t >= 1) { clearInterval(id); setPlaying(false); setProgress(1); }
-      else setProgress(t);
-    }, 40);
+    cancelSpeech();
+    setPlaying(true); setProgress(1);
+    speak(item.nub || item.sound, {
+      rate: 0.7,
+      onEnd: () => setPlaying(false),
+    });
   }
-  useEffect(() => { play(); }, []);
+  useEffect(() => { play(); return cancelSpeech; }, [item]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18, height: '100%' }}>
@@ -198,15 +198,14 @@ function SoundDiscriminate({ item, pool, stage, onNext }) {
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   function play() {
-    setPlaying(true); setProgress(0);
-    const start = Date.now();
-    const id = setInterval(() => {
-      const t = (Date.now() - start) / 900;
-      if (t >= 1) { clearInterval(id); setPlaying(false); setProgress(1); }
-      else setProgress(t);
-    }, 40);
+    cancelSpeech();
+    setPlaying(true); setProgress(1);
+    speak(item.nub || item.sound, {
+      rate: 0.7,
+      onEnd: () => setPlaying(false),
+    });
   }
-  useEffect(() => { play(); }, []);
+  useEffect(() => { play(); return cancelSpeech; }, [item]);
 
   const correct = picked === (item.glyph || item.script);
 
@@ -270,85 +269,29 @@ function SoundDiscriminate({ item, pool, stage, onNext }) {
 }
 
 function SoundProduce({ item, stage, onNext }) {
-  const [phase, setPhase] = useState('idle');
-  const [score, setScore] = useState(0);
-  const recordTimer = useRef();
-
-  function toggleRecord() {
-    if (phase === 'recording') { clearTimeout(recordTimer.current); finishRecording(); }
-    else { setPhase('recording'); recordTimer.current = setTimeout(finishRecording, 1800); }
-  }
-  function finishRecording() {
-    setScore(78 + Math.floor(Math.random() * 18));
-    setPhase('scored');
-  }
-  const success = score >= 80;
-
+  const target = item.nub || item.sound;
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%' }}>
-      <div>
-        <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', letterSpacing: '0.18em', color: stage.color, fontWeight: 700 }}>YOUR TURN</div>
-        <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 26, fontWeight: 400, letterSpacing: '-0.02em', marginTop: 4, lineHeight: 1.1 }}>
-          Say <em style={{ fontStyle: 'italic' }}>"{item.sound || item.nub}"</em>
-        </h2>
-      </div>
-
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 22, padding: 22, textAlign: 'center' }}>
-        <NubianStrip height={10} />
-        <div className="nubian" style={{ fontSize: 80, lineHeight: 1, color: stage.color, marginTop: 10, marginBottom: 6 }}>{item.glyph || item.script}</div>
-        <div style={{ fontSize: 18, fontFamily: 'var(--font-serif)', fontStyle: 'italic' }}>{item.nub || `"${item.sound}"`}</div>
-      </div>
-
-      <div style={{
-        background: phase === 'scored' ? (success ? 'var(--ok-soft)' : 'var(--bad-soft)') : 'var(--surface-2)',
-        border: `1px solid ${phase === 'scored' ? (success ? 'var(--ok)' : 'var(--bad)') : 'var(--border)'}`,
-        borderRadius: 22, padding: 16, transition: 'all 240ms', minHeight: 110,
-        display: 'flex', flexDirection: 'column', justifyContent: 'center',
-      }}>
-        {phase !== 'scored' ? (
-          <>
-            <LiveWaveform listening={phase === 'recording'} height={64} />
-            <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-3)', marginTop: 8, fontFamily: 'var(--font-mono)', letterSpacing: '0.12em', fontWeight: 700 }}>
-              {phase === 'recording' ? 'LISTENING...' : 'TAP MIC TO SPEAK'}
-            </div>
-          </>
-        ) : (
-          <div className="scale-in" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{
-              width: 44, height: 44, borderRadius: 14,
-              background: success ? 'var(--ok)' : 'var(--bad)', color: 'white',
-              display: 'grid', placeItems: 'center',
-            }}>
-              <Icon name={success ? 'check' : 'x'} size={20} color="white" />
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 800, letterSpacing: '0.12em', color: success ? 'var(--ok)' : 'var(--bad)' }}>
-                {success ? 'GREAT MATCH' : 'NOT QUITE'}
-              </div>
-              <div style={{ fontSize: 20, fontFamily: 'var(--font-mono)', fontWeight: 800 }}>{score}<span style={{ color: 'var(--text-3)', fontSize: 13 }}>/100</span></div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-        {phase !== 'scored' ? (
-          <RecordRing size={80} listening={phase === 'recording'} onClick={toggleRecord} />
-        ) : (
-          <button onClick={() => onNext(success)} style={{
-            width: '100%', borderRadius: 16, padding: 16, fontSize: 15, fontWeight: 700,
-            background: success ? 'var(--ok)' : 'var(--bad)', color: 'white', border: 'none',
-          }}>
-            {success ? 'Continue' : 'Try the next one'}
-          </button>
-        )}
-      </div>
-    </div>
+    <ProduceCard
+      stage={stage}
+      title={<>Say <em style={{ fontStyle: 'italic' }}>"{item.sound || item.nub}"</em></>}
+      glyph={item.glyph || item.script}
+      hint={item.nub || `"${item.sound}"`}
+      target={target}
+      onNext={onNext}
+      glyphSize={80}
+    />
   );
 }
 
 function PairHear({ pair, stage, onNext }) {
   const [played, setPlayed] = useState({ a: false, b: false });
+  function tap(which) {
+    cancelSpeech();
+    const w = which === 'a' ? pair.a : pair.b;
+    speak(w.nub, { rate: 0.7 });
+    setPlayed(p => ({ ...p, [which]: true }));
+  }
+  useEffect(() => () => cancelSpeech(), []);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18, height: '100%' }}>
       <div>
@@ -360,7 +303,7 @@ function PairHear({ pair, stage, onNext }) {
       </div>
 
       {[pair.a, pair.b].map((w, i) => (
-        <button key={i} onClick={() => setPlayed(p => ({ ...p, [i === 0 ? 'a' : 'b']: true }))} style={{
+        <button key={i} onClick={() => tap(i === 0 ? 'a' : 'b')} style={{
           background: 'var(--surface)', border: '1px solid var(--border)',
           borderRadius: 22, padding: 16, textAlign: 'left',
           display: 'flex', alignItems: 'center', gap: 14,
@@ -399,15 +342,11 @@ function PairDiscriminate({ pair, stage, onNext }) {
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   function play() {
-    setPlaying(true); setProgress(0);
-    const start = Date.now();
-    const id = setInterval(() => {
-      const t = (Date.now() - start) / 900;
-      if (t >= 1) { clearInterval(id); setPlaying(false); setProgress(1); }
-      else setProgress(t);
-    }, 40);
+    cancelSpeech();
+    setPlaying(true); setProgress(1);
+    speak(target.nub, { rate: 0.7, onEnd: () => setPlaying(false) });
   }
-  useEffect(() => { play(); }, []);
+  useEffect(() => { play(); return cancelSpeech; }, [target]);
   const correct = picked && picked === target.script;
 
   return (
@@ -469,15 +408,11 @@ function ListenExercise({ word, stage, onNext }) {
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   function play() {
-    setPlaying(true); setProgress(0);
-    const start = Date.now();
-    const id = setInterval(() => {
-      const t = (Date.now() - start) / 1300;
-      if (t >= 1) { clearInterval(id); setPlaying(false); setProgress(1); }
-      else setProgress(t);
-    }, 40);
+    cancelSpeech();
+    setPlaying(true); setProgress(1);
+    speak(word.nub, { onEnd: () => setPlaying(false) });
   }
-  useEffect(() => { play(); }, []);
+  useEffect(() => { play(); return cancelSpeech; }, [word]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%' }}>
@@ -525,70 +460,138 @@ function ListenExercise({ word, stage, onNext }) {
 }
 
 function MimicExercise({ word, stage, onNext }) {
-  const [phase, setPhase] = useState('idle');
-  const [score, setScore] = useState(0);
-  const recordTimer = useRef();
+  return (
+    <ProduceCard
+      stage={stage}
+      title={<>Say <em style={{ fontStyle: 'italic' }}>"{word.en}"</em> in Nubian</>}
+      glyph={word.script}
+      hint={word.nub}
+      target={word.nub}
+      onNext={onNext}
+      glyphSize={44}
+    />
+  );
+}
+
+/* Shared "produce" exercise: speak target → record self → A/B compare. */
+function ProduceCard({ stage, title, glyph, hint, target, onNext, glyphSize = 80 }) {
+  const { recording, audioUrl, error, start, stop } = useRecorder();
+  const [playingTarget, setPlayingTarget] = useState(false);
+  const [playingSelf, setPlayingSelf] = useState(false);
+  const audioRef = useRef(null);
+
+  function playTarget() {
+    cancelSpeech();
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; setPlayingSelf(false); }
+    setPlayingTarget(true);
+    speak(target, { rate: 0.7, onEnd: () => setPlayingTarget(false) });
+  }
+
+  function playSelf() {
+    if (!audioUrl) return;
+    cancelSpeech();
+    setPlayingTarget(false);
+    setPlayingSelf(true);
+    audioRef.current = playAudio(audioUrl, {
+      onEnd: () => { setPlayingSelf(false); audioRef.current = null; },
+    });
+  }
+
   function toggleRecord() {
-    if (phase === 'recording') { clearTimeout(recordTimer.current); finishRecording(); }
-    else { setPhase('recording'); recordTimer.current = setTimeout(finishRecording, 2000); }
+    if (recording) { stop(); }
+    else {
+      cancelSpeech();
+      if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; setPlayingSelf(false); }
+      start();
+    }
   }
-  function finishRecording() {
-    setScore(78 + Math.floor(Math.random() * 18));
-    setPhase('scored');
-  }
-  const success = score >= 80;
+
+  useEffect(() => () => {
+    cancelSpeech();
+    if (audioRef.current) audioRef.current.pause();
+  }, []);
+
+  const hasRecording = !!audioUrl;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14, height: '100%' }}>
       <div>
-        <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', letterSpacing: '0.18em', color: stage.color, fontWeight: 700 }}>SAY IT</div>
+        <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', letterSpacing: '0.18em', color: stage.color, fontWeight: 700 }}>YOUR TURN</div>
         <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 24, fontWeight: 400, letterSpacing: '-0.02em', marginTop: 4, lineHeight: 1.1 }}>
-          Say <em style={{ fontStyle: 'italic' }}>"{word.en}"</em> in Nubian
+          {title}
         </h2>
       </div>
 
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 22, padding: 18, textAlign: 'center' }}>
-        <div className="nubian" style={{ fontSize: 44, lineHeight: 1, color: stage.color }}>{word.script}</div>
-        <div style={{ fontSize: 18, fontFamily: 'var(--font-serif)', fontStyle: 'italic', marginTop: 4 }}>{word.nub}</div>
-      </div>
+      <button onClick={playTarget} style={{
+        background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 22, padding: 18,
+        textAlign: 'center', position: 'relative',
+      }}>
+        <NubianStrip height={10} />
+        <div className="nubian" style={{ fontSize: glyphSize, lineHeight: 1, color: stage.color, marginTop: 10, marginBottom: 6 }}>{glyph}</div>
+        <div style={{ fontSize: 18, fontFamily: 'var(--font-serif)', fontStyle: 'italic' }}>{hint}</div>
+        <div style={{
+          marginTop: 10, fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 700,
+          letterSpacing: '0.12em', color: 'var(--text-3)',
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+        }}>
+          <Icon name={playingTarget ? 'pause' : 'play'} size={12} color="var(--text-3)" />
+          TAP TO HEAR TARGET
+        </div>
+      </button>
 
       <div style={{
-        background: phase === 'scored' ? (success ? 'var(--ok-soft)' : 'var(--bad-soft)') : 'var(--surface-2)',
-        border: `1px solid ${phase === 'scored' ? (success ? 'var(--ok)' : 'var(--bad)') : 'var(--border)'}`,
+        background: hasRecording ? 'var(--ok-soft)' : 'var(--surface-2)',
+        border: `1px solid ${hasRecording ? 'var(--ok)' : 'var(--border)'}`,
         borderRadius: 22, padding: 14, transition: 'all 240ms', minHeight: 100,
-        display: 'flex', flexDirection: 'column', justifyContent: 'center',
+        display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 8,
       }}>
-        {phase !== 'scored' ? (
+        {!hasRecording ? (
           <>
-            <LiveWaveform listening={phase === 'recording'} height={56} />
-            <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-3)', marginTop: 8, fontFamily: 'var(--font-mono)', letterSpacing: '0.12em', fontWeight: 700 }}>
-              {phase === 'recording' ? 'LISTENING...' : 'TAP MIC TO SPEAK'}
+            <LiveWaveform listening={recording} height={56} />
+            <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-3)', fontFamily: 'var(--font-mono)', letterSpacing: '0.12em', fontWeight: 700 }}>
+              {error ? error.toUpperCase() : recording ? 'LISTENING...' : 'TAP MIC TO SPEAK'}
             </div>
           </>
         ) : (
-          <div className="scale-in" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: success ? 'var(--ok)' : 'var(--bad)', color: 'white', display: 'grid', placeItems: 'center' }}>
-              <Icon name={success ? 'check' : 'x'} size={18} color="white" />
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 800, letterSpacing: '0.12em', color: success ? 'var(--ok)' : 'var(--bad)' }}>
-                {success ? 'GREAT MATCH' : 'NOT QUITE'}
-              </div>
-              <div style={{ fontSize: 20, fontFamily: 'var(--font-mono)', fontWeight: 800 }}>{score}<span style={{ color: 'var(--text-3)', fontSize: 13 }}>/100</span></div>
-            </div>
+          <div className="scale-in" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <CompareButton label="Target" icon="play" active={playingTarget} onClick={playTarget} color={stage.color} />
+            <CompareButton label="You" icon="play" active={playingSelf} onClick={playSelf} color="var(--ok)" />
+            <button onClick={toggleRecord} style={{
+              padding: '10px 12px', borderRadius: 12, fontSize: 11, fontWeight: 800, fontFamily: 'var(--font-mono)',
+              letterSpacing: '0.12em', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text-3)',
+              flexShrink: 0,
+            }}>RETRY</button>
           </div>
         )}
       </div>
 
       <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-        {phase !== 'scored'
-          ? <RecordRing size={78} listening={phase === 'recording'} onClick={toggleRecord} />
-          : <button onClick={() => onNext(success)} style={{
-              width: '100%', borderRadius: 16, padding: 16, fontSize: 15, fontWeight: 700,
-              background: success ? 'var(--ok)' : 'var(--bad)', color: 'white', border: 'none',
-            }}>{success ? 'Continue' : 'Try the next'}</button>}
+        {!hasRecording ? (
+          <RecordRing size={78} listening={recording} onClick={toggleRecord} />
+        ) : (
+          <button onClick={() => onNext(true)} style={{
+            width: '100%', borderRadius: 16, padding: 16, fontSize: 15, fontWeight: 700,
+            background: stage.color, color: 'white', border: 'none',
+          }}>Continue</button>
+        )}
       </div>
     </div>
+  );
+}
+
+function CompareButton({ label, icon, active, onClick, color }) {
+  return (
+    <button onClick={onClick} style={{
+      flex: 1, padding: '10px 12px', borderRadius: 14,
+      background: active ? color : 'var(--surface)',
+      border: `1px solid ${active ? color : 'var(--border)'}`,
+      color: active ? 'white' : 'var(--text)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+      fontSize: 13, fontWeight: 700,
+    }}>
+      <Icon name={active ? 'pause' : icon} size={14} color={active ? 'white' : color} />
+      {label}
+    </button>
   );
 }
 
@@ -602,15 +605,11 @@ function MatchExercise({ word, pool, stage, onNext }) {
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   function play() {
-    setPlaying(true); setProgress(0);
-    const start = Date.now();
-    const id = setInterval(() => {
-      const t = (Date.now() - start) / 1100;
-      if (t >= 1) { clearInterval(id); setPlaying(false); setProgress(1); }
-      else setProgress(t);
-    }, 40);
+    cancelSpeech();
+    setPlaying(true); setProgress(1);
+    speak(word.nub, { onEnd: () => setPlaying(false) });
   }
-  useEffect(() => { play(); }, []);
+  useEffect(() => { play(); return cancelSpeech; }, [word]);
   const correct = picked && picked === word.en;
 
   return (

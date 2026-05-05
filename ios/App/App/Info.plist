@@ -47,5 +47,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>SayNubian uses your microphone to record your pronunciation so you can compare it to the target word.</string>
 </dict>
 </plist>
