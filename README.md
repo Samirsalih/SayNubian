@@ -2,6 +2,8 @@
 
 Voice-first Nubian language learning app — web, iOS, and Android from one codebase.
 
+**Live web app**: <https://samirsalih.github.io/SayNubian/>
+
 ## Stack
 
 - **Vite + React 18** — web app
