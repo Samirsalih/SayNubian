@@ -177,3 +177,66 @@ export function playAudio(url, { onEnd } = {}) {
   audio.play().catch(() => onEnd?.());
   return audio;
 }
+
+/* ── pronounce() — prefer recorded native audio, fall back to TTS ───
+   Item shape: { audio?: string, nub?: string, sound?: string }
+   - If item.audio is set, plays that file.
+   - Otherwise, calls speak() on item.nub (preferred) or item.sound.
+   Always cancels any in-flight speech/audio first.
+   Returns a teardown function to abort early. */
+let currentNativeAudio = null;
+
+export function pronounce(item, { rate, onEnd } = {}) {
+  cancelSpeech();
+  if (currentNativeAudio) {
+    try { currentNativeAudio.pause(); } catch {}
+    currentNativeAudio = null;
+  }
+
+  if (!item) { onEnd?.(); return () => {}; }
+
+  if (item.audio) {
+    const audio = new Audio(item.audio);
+    currentNativeAudio = audio;
+    const finish = () => {
+      if (currentNativeAudio === audio) currentNativeAudio = null;
+      onEnd?.();
+    };
+    audio.addEventListener('ended', finish);
+    audio.addEventListener('error', finish);
+    audio.play().catch(finish);
+    return () => { try { audio.pause(); } catch {} finish(); };
+  }
+
+  const text = item.nub || item.sound || '';
+  speak(text, { rate: rate ?? 0.7, onEnd });
+  return () => cancelSpeech();
+}
+
+/* React hook variant: tracks playing state for UI. */
+export function usePronounce() {
+  const [playing, setPlaying] = useState(false);
+  const teardownRef = useRef(null);
+
+  useEffect(() => () => {
+    teardownRef.current?.();
+    teardownRef.current = null;
+  }, []);
+
+  const play = useCallback((item, opts = {}) => {
+    teardownRef.current?.();
+    setPlaying(true);
+    teardownRef.current = pronounce(item, {
+      ...opts,
+      onEnd: () => { opts.onEnd?.(); setPlaying(false); },
+    });
+  }, []);
+
+  const stop = useCallback(() => {
+    teardownRef.current?.();
+    teardownRef.current = null;
+    setPlaying(false);
+  }, []);
+
+  return [playing, play, stop];
+}

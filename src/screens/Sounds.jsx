@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Icon, Waveform } from '../lib/primitives.jsx';
 import { ALPHABET, DIALOGS } from '../lib/data.js';
-import { speak, cancelSpeech } from '../lib/audio.js';
+import { speak, cancelSpeech, pronounce } from '../lib/audio.js';
 
 export default function Sounds() {
   const [tab, setTab] = useState('alphabet');
@@ -15,7 +15,7 @@ export default function Sounds() {
       return;
     }
     setPlayGlyph(g.glyph);
-    speak(g.sound, { rate: 0.7, onEnd: () => setPlayGlyph(p => (p === g.glyph ? null : p)) });
+    pronounce(g, { onEnd: () => setPlayGlyph(p => (p === g.glyph ? null : p)) });
   }
 
   function handleDialog(d) {

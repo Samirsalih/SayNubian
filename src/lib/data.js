@@ -1,26 +1,30 @@
-/* SayNubian — Curriculum data. Pure data; no React. */
+/* SayNubian — Curriculum data. Pure data; no React.
+   `audio` paths point to native-speaker recordings under public/audio/.
+   When absent, screens fall back to system TTS via speak(). */
+
+const ALPHABET_DIR = 'audio/alphabet';
 
 export const VOWELS = [
-  { glyph: 'ⲁ', sound: 'a', hint: 'as in "father"' },
-  { glyph: 'ⲉ', sound: 'e', hint: 'as in "bed"' },
-  { glyph: 'ⲓ', sound: 'i', hint: 'as in "ski"' },
-  { glyph: 'ⲟ', sound: 'o', hint: 'as in "go"' },
-  { glyph: 'ⲩ', sound: 'u', hint: 'as in "blue"' },
+  { glyph: 'ⲁ', sound: 'a', hint: 'as in "father"', audio: `${ALPHABET_DIR}/a.mp3` },
+  { glyph: 'ⲉ', sound: 'e', hint: 'as in "bed"', audio: `${ALPHABET_DIR}/e.mp3` },
+  { glyph: 'ⲓ', sound: 'i', hint: 'as in "ski"', audio: `${ALPHABET_DIR}/i.mp3` },
+  { glyph: 'ⲟ', sound: 'o', hint: 'as in "go"', audio: `${ALPHABET_DIR}/o.mp3` },
+  { glyph: 'ⲩ', sound: 'u', hint: 'as in "blue"', audio: `${ALPHABET_DIR}/u.mp3` },
 ];
 
 export const CONSONANTS = [
-  { glyph: 'ⲃ', sound: 'b', hint: 'as in "boy"' },
-  { glyph: 'ⲇ', sound: 'd', hint: 'as in "dog"' },
-  { glyph: 'ⲅ', sound: 'g', hint: 'as in "go"' },
-  { glyph: 'ⲕ', sound: 'k', hint: 'as in "key"' },
-  { glyph: 'ⲙ', sound: 'm', hint: 'as in "moon"' },
-  { glyph: 'ⲛ', sound: 'n', hint: 'as in "now"' },
-  { glyph: 'ⲣ', sound: 'r', hint: 'rolled' },
-  { glyph: 'ⲥ', sound: 's', hint: 'as in "see"' },
-  { glyph: 'ⲧ', sound: 't', hint: 'as in "top"' },
-  { glyph: 'ⲗ', sound: 'l', hint: 'as in "light"' },
-  { glyph: 'ϣ', sound: 'sh', hint: 'as in "shoe"' },
-  { glyph: 'ϫ', sound: 'j', hint: 'as in "jam"' },
+  { glyph: 'ⲃ', sound: 'b', hint: 'as in "boy"', audio: `${ALPHABET_DIR}/b.mp3` },
+  { glyph: 'ⲇ', sound: 'd', hint: 'as in "dog"', audio: `${ALPHABET_DIR}/d.mp3` },
+  { glyph: 'ⲅ', sound: 'g', hint: 'as in "go"', audio: `${ALPHABET_DIR}/g.mp3` },
+  { glyph: 'ⲕ', sound: 'k', hint: 'as in "key"', audio: `${ALPHABET_DIR}/k.mp3` },
+  { glyph: 'ⲙ', sound: 'm', hint: 'as in "moon"', audio: `${ALPHABET_DIR}/m.mp3` },
+  { glyph: 'ⲛ', sound: 'n', hint: 'as in "now"', audio: `${ALPHABET_DIR}/n.mp3` },
+  { glyph: 'ⲣ', sound: 'r', hint: 'rolled', audio: `${ALPHABET_DIR}/r.mp3` },
+  { glyph: 'ⲥ', sound: 's', hint: 'as in "see"', audio: `${ALPHABET_DIR}/s.mp3` },
+  { glyph: 'ⲧ', sound: 't', hint: 'as in "top"', audio: `${ALPHABET_DIR}/t.mp3` },
+  { glyph: 'ⲗ', sound: 'l', hint: 'as in "light"', audio: `${ALPHABET_DIR}/l.mp3` },
+  { glyph: 'ϣ', sound: 'sh', hint: 'as in "shoe"' /* no native file */ },
+  { glyph: 'ϫ', sound: 'j', hint: 'as in "jam"', audio: `${ALPHABET_DIR}/j.mp3` },
 ];
 
 export const MINIMAL_PAIRS = [
@@ -142,9 +146,9 @@ export const REVIEW_DUE = [
 export const ALPHABET = [
   ...VOWELS,
   ...CONSONANTS,
-  { glyph: 'ⲡ', sound: 'p', hint: 'as in "pen"' },
-  { glyph: 'ⲍ', sound: 'z', hint: 'as in "zoo"' },
-  { glyph: 'ϭ', sound: 'ch', hint: 'as in "chair"' },
+  { glyph: 'ⲡ', sound: 'p', hint: 'as in "pen"', audio: `${ALPHABET_DIR}/p.mp3` },
+  { glyph: 'ⲍ', sound: 'z', hint: 'as in "zoo"', audio: `${ALPHABET_DIR}/z.mp3` },
+  { glyph: 'ϭ', sound: 'ch', hint: 'as in "chair"' /* no native file */ },
 ];
 
 export const DICT = [

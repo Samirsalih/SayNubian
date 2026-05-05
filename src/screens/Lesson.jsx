@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Icon, Waveform, LiveWaveform, RecordRing, NubianStrip } from '../lib/primitives.jsx';
 import { VOWELS, CONSONANTS, MINIMAL_PAIRS, SYLLABLES, WORDS, PHRASES } from '../lib/data.js';
-import { speak, cancelSpeech, useRecorder, playAudio } from '../lib/audio.js';
+import { speak, cancelSpeech, useRecorder, playAudio, pronounce } from '../lib/audio.js';
 
 /* LESSON — pedagogy loop: HEAR → DISTINGUISH → PRODUCE → READ → USE */
 
@@ -138,12 +138,8 @@ function SoundHear({ item, stage, onNext }) {
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   function play() {
-    cancelSpeech();
     setPlaying(true); setProgress(1);
-    speak(item.nub || item.sound, {
-      rate: 0.7,
-      onEnd: () => setPlaying(false),
-    });
+    pronounce(item, { onEnd: () => setPlaying(false) });
   }
   useEffect(() => { play(); return cancelSpeech; }, [item]);
 
@@ -198,12 +194,8 @@ function SoundDiscriminate({ item, pool, stage, onNext }) {
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   function play() {
-    cancelSpeech();
     setPlaying(true); setProgress(1);
-    speak(item.nub || item.sound, {
-      rate: 0.7,
-      onEnd: () => setPlaying(false),
-    });
+    pronounce(item, { onEnd: () => setPlaying(false) });
   }
   useEffect(() => { play(); return cancelSpeech; }, [item]);
 
@@ -269,14 +261,13 @@ function SoundDiscriminate({ item, pool, stage, onNext }) {
 }
 
 function SoundProduce({ item, stage, onNext }) {
-  const target = item.nub || item.sound;
   return (
     <ProduceCard
       stage={stage}
       title={<>Say <em style={{ fontStyle: 'italic' }}>"{item.sound || item.nub}"</em></>}
       glyph={item.glyph || item.script}
       hint={item.nub || `"${item.sound}"`}
-      target={target}
+      target={item}
       onNext={onNext}
       glyphSize={80}
     />
@@ -466,30 +457,35 @@ function MimicExercise({ word, stage, onNext }) {
       title={<>Say <em style={{ fontStyle: 'italic' }}>"{word.en}"</em> in Nubian</>}
       glyph={word.script}
       hint={word.nub}
-      target={word.nub}
+      target={word}
       onNext={onNext}
       glyphSize={44}
     />
   );
 }
 
-/* Shared "produce" exercise: speak target → record self → A/B compare. */
+/* Shared "produce" exercise: speak target → record self → A/B compare.
+   `target` is a curriculum item ({ audio?, nub?, sound? }) — pronounce()
+   prefers item.audio if present, falls back to TTS. */
 function ProduceCard({ stage, title, glyph, hint, target, onNext, glyphSize = 80 }) {
   const { recording, audioUrl, error, start, stop } = useRecorder();
   const [playingTarget, setPlayingTarget] = useState(false);
   const [playingSelf, setPlayingSelf] = useState(false);
   const audioRef = useRef(null);
+  const targetTeardownRef = useRef(null);
 
   function playTarget() {
-    cancelSpeech();
+    targetTeardownRef.current?.();
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; setPlayingSelf(false); }
     setPlayingTarget(true);
-    speak(target, { rate: 0.7, onEnd: () => setPlayingTarget(false) });
+    targetTeardownRef.current = pronounce(target, {
+      onEnd: () => setPlayingTarget(false),
+    });
   }
 
   function playSelf() {
     if (!audioUrl) return;
-    cancelSpeech();
+    targetTeardownRef.current?.();
     setPlayingTarget(false);
     setPlayingSelf(true);
     audioRef.current = playAudio(audioUrl, {
@@ -500,14 +496,14 @@ function ProduceCard({ stage, title, glyph, hint, target, onNext, glyphSize = 80
   function toggleRecord() {
     if (recording) { stop(); }
     else {
-      cancelSpeech();
+      targetTeardownRef.current?.();
       if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; setPlayingSelf(false); }
       start();
     }
   }
 
   useEffect(() => () => {
-    cancelSpeech();
+    targetTeardownRef.current?.();
     if (audioRef.current) audioRef.current.pause();
   }, []);
 
