@@ -6,7 +6,7 @@ import Words from './screens/Words.jsx';
 import Sounds from './screens/Sounds.jsx';
 import Speak from './screens/Speak.jsx';
 import Chat from './screens/Chat.jsx';
-import { STAGES } from './lib/data.js';
+import { STAGES, DIALECTS, DEFAULT_DIALECT } from './lib/data.js';
 
 const THEMES = ['nile', 'sand', 'indigo', 'reed'];
 
@@ -15,7 +15,7 @@ function loadPrefs() {
     const raw = localStorage.getItem('saynubian.prefs');
     if (raw) return JSON.parse(raw);
   } catch {}
-  return { theme: 'nile', mode: 'light', dailyGoal: 10 };
+  return { theme: 'nile', mode: 'light', dailyGoal: 10, dialect: DEFAULT_DIALECT };
 }
 
 function savePrefs(p) {
@@ -190,6 +190,43 @@ function SettingsSheet({ prefs, setPref, onClose }) {
                 {m}
               </button>
             ))}
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 700, letterSpacing: '0.14em', color: 'var(--text-3)', marginBottom: 8 }}>DIALECT</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {DIALECTS.map(d => {
+              const selected = prefs.dialect === d.id;
+              return (
+                <button
+                  key={d.id}
+                  disabled={!d.available}
+                  onClick={() => d.available && setPref('dialect', d.id)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '10px 12px', borderRadius: 12,
+                    background: selected ? 'var(--accent-soft)' : 'var(--surface-2)',
+                    border: `1px solid ${selected ? 'var(--accent)' : 'var(--border)'}`,
+                    color: d.available ? 'var(--text)' : 'var(--text-3)',
+                    opacity: d.available ? 1 : 0.6,
+                    textAlign: 'left',
+                    cursor: d.available ? 'pointer' : 'not-allowed',
+                  }}
+                >
+                  <div style={{
+                    width: 18, height: 18, borderRadius: '50%', flexShrink: 0,
+                    background: selected ? 'var(--accent)' : 'transparent',
+                    border: `1.5px solid ${selected ? 'var(--accent)' : 'var(--border-2)'}`,
+                  }}/>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700 }}>{d.label}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>{d.notes}</div>
+                  </div>
+                  {!d.available && <Icon name="lock" size={12} color="var(--text-3)" />}
+                </button>
+              );
+            })}
           </div>
         </div>
 

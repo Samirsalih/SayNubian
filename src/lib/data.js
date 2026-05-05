@@ -1,6 +1,20 @@
 /* SayNubian — Curriculum data. Pure data; no React.
    `audio` paths point to native-speaker recordings under public/audio/.
-   When absent, screens fall back to system TTS via speak(). */
+   When absent, screens fall back to system TTS via speak().
+
+   All current curriculum content is tagged dialect="nobiin" — that's
+   what every shipped recording is. Architecture is multi-dialect
+   ready: see public/audio/manifest.json for available_dialects and
+   permission_status per recording. Add Kenzi/Dongolawi by dropping
+   files in and updating the manifest; no code change needed. */
+
+export const DIALECTS = [
+  { id: 'nobiin',     label: 'Nobiin',             available: true,  notes: 'Most widely spoken Nile Nubian variety. All current recordings.' },
+  { id: 'kenzi',      label: 'Kenzi (Mattokki)',   available: false, notes: 'Northern Nile Nubian. No recordings yet.' },
+  { id: 'dongolawi',  label: 'Dongolawi (Andaandi)', available: false, notes: 'Southern Nile Nubian. No recordings yet.' },
+];
+
+export const DEFAULT_DIALECT = 'nobiin';
 
 const ALPHABET_DIR = 'audio/alphabet';
 
