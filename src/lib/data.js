@@ -234,8 +234,11 @@ export const STAGES = [
     glyph: 'ⲇⲱ', color: 'var(--accent-2)',
     why: 'Listen to native speakers — then take their place.',
     units: [
-      { id: 'dialog-1', title: 'Meeting Someone', lessons: 1, done: 0, status: 'locked', desc: '8 lines · 3 min' },
-      { id: 'dialog-2', title: 'Health & Food', lessons: 1, done: 0, status: 'locked', desc: '9 lines · 2 min' },
+      { id: 'dialog-1', title: 'Meeting Someone',         lessons: 1, done: 0, status: 'unlocked', desc: '8 lines · native voice' },
+      { id: 'dialog-2', title: 'Health & Food',           lessons: 1, done: 0, status: 'unlocked', desc: '9 lines · native voice' },
+      { id: 'dialog-3', title: 'Home & People',           lessons: 1, done: 0, status: 'unlocked', desc: '7 lines · native voice' },
+      { id: 'dialog-4', title: 'Plans & Money',           lessons: 1, done: 0, status: 'unlocked', desc: '9 lines · native voice' },
+      { id: 'dialog-5', title: 'The Dog and the Cat',     lessons: 1, done: 0, status: 'unlocked', desc: '9 lines · native voice' },
     ],
   },
 ];

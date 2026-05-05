@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Icon, Waveform } from '../lib/primitives.jsx';
 import { DICT as STARTER_DICT } from '../lib/data.js';
-import { speak, cancelSpeech } from '../lib/audio.js';
+import { speak, cancelSpeech, pronounce } from '../lib/audio.js';
 
 const DICTIONARY_URL = 'data/dictionary.json';
 
@@ -46,7 +46,7 @@ export default function Words() {
       return;
     }
     setPlaying(keyOf(w));
-    speak(w.nub, { onEnd: () => setPlaying(p => (p === keyOf(w) ? null : p)) });
+    pronounce(w, { onEnd: () => setPlaying(p => (p === keyOf(w) ? null : p)) });
   }
 
   const list = entries ?? STARTER_DICT;

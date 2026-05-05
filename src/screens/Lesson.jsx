@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Icon, Waveform, LiveWaveform, RecordRing, NubianStrip } from '../lib/primitives.jsx';
-import { VOWELS, CONSONANTS, MINIMAL_PAIRS, SYLLABLES, WORDS, PHRASES } from '../lib/data.js';
+import { VOWELS, CONSONANTS, MINIMAL_PAIRS, SYLLABLES, WORDS, PHRASES, DIALOGS } from '../lib/data.js';
 import { speak, cancelSpeech, useRecorder, playAudio, pronounce } from '../lib/audio.js';
 
 /* LESSON — pedagogy loop: HEAR → DISTINGUISH → PRODUCE → READ → USE */
@@ -41,10 +41,21 @@ function buildLesson(stage, unit) {
       { kind: 'word-produce', word: { en: p.en, nub: p.nub, script: p.script, ipa: '' } },
     ]);
   }
-  return [
-    { kind: 'word-hear', word: { en: 'how are you?', nub: 'ma arrik?', script: 'ⲙⲁ ⲁⲣⲣⲓⲕ?', ipa: '' } },
-    { kind: 'word-produce', word: { en: 'I am fine', nub: 'sirri-ai', script: 'ⲥⲓⲣⲣⲓ-ⲁⲓ', ipa: '' } },
-  ];
+  if (stage.id === 'talk') {
+    // Talk units map to real dialogs by index. unit.id is "dialog-1", "dialog-2"…
+    // We slice the dialog into hear+produce pairs so the user listens to the
+    // real native voice and then records their own version of each line.
+    const n = parseInt(unit.id.replace(/^dialog-/, ''), 10);
+    const dialog = DIALOGS[(isFinite(n) ? n - 1 : 0) % DIALOGS.length] || DIALOGS[0];
+    return dialog.lines.slice(0, 6).flatMap(line => {
+      const word = { en: line.en, audio: line.audio, nub: '', script: '', ipa: '' };
+      return [
+        { kind: 'word-hear', word },
+        { kind: 'word-produce', word },
+      ];
+    });
+  }
+  return [];
 }
 
 export function Lesson({ stage, unit, onExit, onComplete }) {
@@ -277,9 +288,8 @@ function SoundProduce({ item, stage, onNext }) {
 function PairHear({ pair, stage, onNext }) {
   const [played, setPlayed] = useState({ a: false, b: false });
   function tap(which) {
-    cancelSpeech();
     const w = which === 'a' ? pair.a : pair.b;
-    speak(w.nub, { rate: 0.7 });
+    pronounce(w);
     setPlayed(p => ({ ...p, [which]: true }));
   }
   useEffect(() => () => cancelSpeech(), []);
@@ -333,9 +343,8 @@ function PairDiscriminate({ pair, stage, onNext }) {
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   function play() {
-    cancelSpeech();
     setPlaying(true); setProgress(1);
-    speak(target.nub, { rate: 0.7, onEnd: () => setPlaying(false) });
+    pronounce(target, { onEnd: () => setPlaying(false) });
   }
   useEffect(() => { play(); return cancelSpeech; }, [target]);
   const correct = picked && picked === target.script;
@@ -399,9 +408,8 @@ function ListenExercise({ word, stage, onNext }) {
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   function play() {
-    cancelSpeech();
     setPlaying(true); setProgress(1);
-    speak(word.nub, { onEnd: () => setPlaying(false) });
+    pronounce(word, { onEnd: () => setPlaying(false) });
   }
   useEffect(() => { play(); return cancelSpeech; }, [word]);
 
@@ -414,11 +422,20 @@ function ListenExercise({ word, stage, onNext }) {
 
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 24, padding: 22, textAlign: 'center' }}>
         <NubianStrip height={10} />
-        <div className="nubian" style={{ fontSize: 56, lineHeight: 1, marginTop: 12, color: 'var(--text)' }}>{word.script}</div>
-        <div style={{ fontSize: 22, fontFamily: 'var(--font-serif)', fontStyle: 'italic', color: 'var(--text-2)', marginTop: 6 }}>{word.nub}</div>
+        {word.script ? (
+          <>
+            <div className="nubian" style={{ fontSize: 56, lineHeight: 1, marginTop: 12, color: 'var(--text)' }}>{word.script}</div>
+            <div style={{ fontSize: 22, fontFamily: 'var(--font-serif)', fontStyle: 'italic', color: 'var(--text-2)', marginTop: 6 }}>{word.nub}</div>
+          </>
+        ) : (
+          <div style={{
+            fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 26,
+            lineHeight: 1.2, marginTop: 14, color: 'var(--text)',
+          }}>"{word.en}"</div>
+        )}
         {word.ipa && <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-3)', marginTop: 4 }}>{word.ipa}</div>}
         <div style={{ marginTop: 12 }}>
-          <Waveform seed={word.en.length * 3} bars={28} height={36} progress={progress} active={playing} />
+          <Waveform seed={(word.en || 'x').length * 3} bars={28} height={36} progress={progress} active={playing} />
         </div>
         <div style={{ marginTop: 12, display: 'flex', justifyContent: 'center', gap: 8 }}>
           <button onClick={play} style={{
@@ -431,12 +448,14 @@ function ListenExercise({ word, stage, onNext }) {
         </div>
       </div>
 
-      <div style={{
-        padding: 12, borderRadius: 14, background: 'var(--surface-2)',
-        border: '1px solid var(--border)', textAlign: 'center', fontSize: 13, color: 'var(--text-3)',
-      }}>
-        It means <strong style={{ color: 'var(--text)', fontSize: 17, fontFamily: 'var(--font-serif)', fontStyle: 'italic' }}>"{word.en}"</strong>
-      </div>
+      {word.script && (
+        <div style={{
+          padding: 12, borderRadius: 14, background: 'var(--surface-2)',
+          border: '1px solid var(--border)', textAlign: 'center', fontSize: 13, color: 'var(--text-3)',
+        }}>
+          It means <strong style={{ color: 'var(--text)', fontSize: 17, fontFamily: 'var(--font-serif)', fontStyle: 'italic' }}>"{word.en}"</strong>
+        </div>
+      )}
 
       <div style={{ marginTop: 'auto' }}>
         <button onClick={onNext} style={{
@@ -455,11 +474,11 @@ function MimicExercise({ word, stage, onNext }) {
     <ProduceCard
       stage={stage}
       title={<>Say <em style={{ fontStyle: 'italic' }}>"{word.en}"</em> in Nubian</>}
-      glyph={word.script}
-      hint={word.nub}
+      glyph={word.script || ''}
+      hint={word.nub || (word.script ? '' : `"${word.en}"`)}
       target={word}
       onNext={onNext}
-      glyphSize={44}
+      glyphSize={word.script ? 44 : 0}
     />
   );
 }
@@ -523,8 +542,14 @@ function ProduceCard({ stage, title, glyph, hint, target, onNext, glyphSize = 80
         textAlign: 'center', position: 'relative',
       }}>
         <NubianStrip height={10} />
-        <div className="nubian" style={{ fontSize: glyphSize, lineHeight: 1, color: stage.color, marginTop: 10, marginBottom: 6 }}>{glyph}</div>
-        <div style={{ fontSize: 18, fontFamily: 'var(--font-serif)', fontStyle: 'italic' }}>{hint}</div>
+        {glyph && glyphSize > 0 && (
+          <div className="nubian" style={{ fontSize: glyphSize, lineHeight: 1, color: stage.color, marginTop: 10, marginBottom: 6 }}>{glyph}</div>
+        )}
+        <div style={{
+          fontSize: glyph ? 18 : 22,
+          fontFamily: 'var(--font-serif)', fontStyle: 'italic',
+          marginTop: glyph ? 0 : 14, lineHeight: 1.2,
+        }}>{hint}</div>
         <div style={{
           marginTop: 10, fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 700,
           letterSpacing: '0.12em', color: 'var(--text-3)',
@@ -601,9 +626,8 @@ function MatchExercise({ word, pool, stage, onNext }) {
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   function play() {
-    cancelSpeech();
     setPlaying(true); setProgress(1);
-    speak(word.nub, { onEnd: () => setPlaying(false) });
+    pronounce(word, { onEnd: () => setPlaying(false) });
   }
   useEffect(() => { play(); return cancelSpeech; }, [word]);
   const correct = picked && picked === word.en;

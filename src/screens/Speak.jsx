@@ -1,10 +1,23 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Icon, RecordRing, LiveWaveform, NubianStrip } from '../lib/primitives.jsx';
-import { NUBIAN_WORDS } from '../lib/data.js';
-import { speak, cancelSpeech, useRecorder, playAudio } from '../lib/audio.js';
+import { DIALOGS } from '../lib/data.js';
+import { cancelSpeech, useRecorder, playAudio, pronounce } from '../lib/audio.js';
 
 export default function Speak({ onExit }) {
-  const all = [...NUBIAN_WORDS.family, ...NUBIAN_WORDS.feelings];
+  // Practice items = every line from every dialog. All have native audio.
+  const all = useMemo(
+    () => DIALOGS.flatMap(d =>
+      d.lines.map(line => ({
+        en: line.en,
+        nub: '',           // nub romanization not in our dialog data
+        script: '',        // ditto for script
+        ipa: '',
+        audio: line.audio, // <- the real Nubian voice
+        dialog: d.title,
+      }))
+    ),
+    [],
+  );
   const [idx, setIdx] = useState(0);
   const word = all[idx];
 
@@ -12,17 +25,18 @@ export default function Speak({ onExit }) {
   const [playingTarget, setPlayingTarget] = useState(false);
   const [playingSelf, setPlayingSelf] = useState(false);
   const audioRef = useRef(null);
+  const teardownRef = useRef(null);
 
   function playTarget() {
-    cancelSpeech();
+    teardownRef.current?.();
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; setPlayingSelf(false); }
     setPlayingTarget(true);
-    speak(word.nub, { rate: 0.7, onEnd: () => setPlayingTarget(false) });
+    teardownRef.current = pronounce(word, { onEnd: () => setPlayingTarget(false) });
   }
 
   function playSelf() {
     if (!audioUrl) return;
-    cancelSpeech();
+    teardownRef.current?.();
     setPlayingTarget(false);
     setPlayingSelf(true);
     audioRef.current = playAudio(audioUrl, {
@@ -33,28 +47,28 @@ export default function Speak({ onExit }) {
   function toggleRecord() {
     if (recording) { stop(); }
     else {
-      cancelSpeech();
+      teardownRef.current?.();
       if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; setPlayingSelf(false); }
       start();
     }
   }
 
   function nextWord() {
-    cancelSpeech();
+    teardownRef.current?.();
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
     setPlayingTarget(false); setPlayingSelf(false);
     reset();
     setIdx(i => (i + 1) % all.length);
   }
 
-  // Auto-play the target when the word changes
+  // Auto-play the target when the line changes
   useEffect(() => {
     playTarget();
     return cancelSpeech;
   }, [idx]);
 
   useEffect(() => () => {
-    cancelSpeech();
+    teardownRef.current?.();
     if (audioRef.current) audioRef.current.pause();
   }, []);
 
@@ -72,8 +86,9 @@ export default function Speak({ onExit }) {
 
       <div className="fade-in" key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '20px 16px' }}>
         <div style={{ textAlign: 'center', marginTop: 12 }}>
-          <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--text-3)', letterSpacing: '0.12em', fontWeight: 700 }}>SAY THIS WORD</div>
-          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 26, fontStyle: 'italic', fontWeight: 400, marginTop: 2 }}>"{word.en}"</h2>
+          <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--text-3)', letterSpacing: '0.12em', fontWeight: 700 }}>
+            {word.dialog ? `FROM "${word.dialog.toUpperCase()}"` : 'SAY THIS'}
+          </div>
         </div>
 
         <button onClick={playTarget} style={{
@@ -82,11 +97,18 @@ export default function Speak({ onExit }) {
           textAlign: 'center', position: 'relative',
         }}>
           <NubianStrip height={12} />
-          <div className="nubian" style={{ fontSize: 64, color: 'var(--accent)', lineHeight: 1, margin: '14px 0 8px' }}>{word.script}</div>
-          <div style={{ fontSize: 24, fontFamily: 'var(--font-serif)', fontStyle: 'italic' }}>{word.nub}</div>
-          <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--text-3)', marginTop: 4 }}>{word.ipa}</div>
+          {word.script && (
+            <div className="nubian" style={{ fontSize: 64, color: 'var(--accent)', lineHeight: 1, margin: '14px 0 8px' }}>{word.script}</div>
+          )}
+          <h2 style={{
+            fontFamily: 'var(--font-serif)', fontSize: 28, fontStyle: 'italic',
+            fontWeight: 400, lineHeight: 1.2, color: 'var(--text)',
+            marginTop: word.script ? 0 : 14,
+          }}>"{word.en}"</h2>
+          {word.nub && <div style={{ fontSize: 18, fontFamily: 'var(--font-mono)', color: 'var(--text-3)', marginTop: 6 }}>{word.nub}</div>}
+          {word.ipa && <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--text-3)', marginTop: 4 }}>{word.ipa}</div>}
           <div style={{
-            marginTop: 10, fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 700,
+            marginTop: 14, fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 700,
             letterSpacing: '0.12em', color: 'var(--accent)',
             display: 'inline-flex', alignItems: 'center', gap: 6,
           }}>
