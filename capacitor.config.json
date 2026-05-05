@@ -1,0 +1,11 @@
+{
+  "appId": "com.saynubian.app",
+  "appName": "SayNubian",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "ios": {
+    "contentInset": "always"
+  }
+}

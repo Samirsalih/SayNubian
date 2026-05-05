@@ -1,0 +1,371 @@
+/* ============================================================
+   SayNubian — Modern Voice-First Design Tokens
+   Themes: Nile (default), Sand, Indigo  |  Modes: light, dark
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* Default theme: Nile (ochre + indigo) — light */
+:root {
+  /* Brand surfaces — gradient swatches */
+  --hero-1: #C2410C;      /* ochre */
+  --hero-2: #7C2D12;      /* burnt sienna */
+  --hero-3: #1E1B4B;      /* deep indigo */
+
+  /* Foreground accents */
+  --accent:    #C2410C;     /* ochre */
+  --accent-2:  #EA580C;
+  --accent-3:  #FB923C;
+  --accent-soft: #FFEDD5;
+  --accent-fg:   #7C2D12;
+
+  --gold:        #B45309;
+  --gold-soft:   #FEF3C7;
+  --gold-deep:   #78350F;
+
+  --indigo:      #3730A3;
+  --indigo-soft: #E0E7FF;
+  --indigo-deep: #1E1B4B;
+
+  --teal:        #0F766E;
+  --teal-soft:   #CCFBF1;
+
+  /* Surfaces (light) */
+  --bg:        #FAF7F2;     /* warm sand */
+  --bg-2:      #F4EFE6;
+  --surface:   #FFFFFF;
+  --surface-2: #FBF7EF;
+  --surface-3: #F4EFE6;
+
+  /* Text */
+  --text:    #1C1917;       /* near-black, warm */
+  --text-2:  #44403C;
+  --text-3:  #78716C;
+  --text-4:  #A8A29E;
+  --text-on-accent: #FFFFFF;
+
+  /* Borders */
+  --border:    #E7E2D7;
+  --border-2:  #D6D0C2;
+  --border-3:  #A8A29E;
+
+  /* Semantic */
+  --ok:      #15803D;
+  --ok-soft: #DCFCE7;
+  --bad:     #B91C1C;
+  --bad-soft:#FEE2E2;
+  --streak:  #DC2626;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(28,25,23,0.04), 0 1px 3px rgba(28,25,23,0.06);
+  --shadow-md: 0 2px 6px rgba(28,25,23,0.06), 0 8px 24px rgba(28,25,23,0.06);
+  --shadow-lg: 0 12px 40px rgba(28,25,23,0.12);
+  --shadow-glow: 0 0 0 6px rgba(194,65,12,0.12), 0 12px 36px rgba(194,65,12,0.28);
+
+  /* Radii */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --r-xl: 32px;
+  --r-pill: 999px;
+
+  /* Type */
+  --font-sans: 'Sora', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-serif: 'Instrument Serif', ui-serif, Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  --font-script: 'NubianIbrim', 'NubianNapata', var(--font-serif);
+}
+
+/* Theme: Sand (warm desert) */
+[data-theme="sand"] {
+  --hero-1: #92400E;
+  --hero-2: #B45309;
+  --hero-3: #422006;
+  --accent: #B45309;
+  --accent-2: #D97706;
+  --accent-3: #F59E0B;
+  --accent-soft: #FEF3C7;
+  --accent-fg: #78350F;
+}
+
+/* Theme: Indigo (cool night Nile) */
+[data-theme="indigo"] {
+  --hero-1: #312E81;
+  --hero-2: #5B21B6;
+  --hero-3: #1E1B4B;
+  --accent: #4338CA;
+  --accent-2: #6366F1;
+  --accent-3: #818CF8;
+  --accent-soft: #E0E7FF;
+  --accent-fg: #312E81;
+}
+
+/* Theme: Reed (teal + gold) */
+[data-theme="reed"] {
+  --hero-1: #115E59;
+  --hero-2: #0F766E;
+  --hero-3: #134E4A;
+  --accent: #0F766E;
+  --accent-2: #14B8A6;
+  --accent-3: #5EEAD4;
+  --accent-soft: #CCFBF1;
+  --accent-fg: #134E4A;
+}
+
+/* ============================================================ DARK ============================================================ */
+[data-mode="dark"] {
+  --bg:        #0E0D0B;
+  --bg-2:      #15130F;
+  --surface:   #1A1815;
+  --surface-2: #221F1A;
+  --surface-3: #2A2620;
+
+  --text:    #F5F1E8;
+  --text-2:  #D6D0C2;
+  --text-3:  #A8A29E;
+  --text-4:  #78716C;
+
+  --border:   #2E2A24;
+  --border-2: #3F3A33;
+  --border-3: #5C554B;
+
+  --accent-soft: #3D2817;
+  --gold-soft:   #3D2D08;
+  --indigo-soft: #1F1B3F;
+  --teal-soft:   #0E2926;
+
+  --ok-soft:  #0F2A1A;
+  --bad-soft: #2A1212;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.5);
+  --shadow-lg: 0 16px 48px rgba(0,0,0,0.6);
+  --shadow-glow: 0 0 0 6px rgba(251,146,60,0.12), 0 12px 36px rgba(251,146,60,0.32);
+}
+
+[data-mode="dark"][data-theme="indigo"] {
+  --accent: #818CF8;
+  --accent-2: #A5B4FC;
+  --accent-3: #C7D2FE;
+}
+[data-mode="dark"][data-theme="reed"] {
+  --accent: #5EEAD4;
+  --accent-2: #2DD4BF;
+  --accent-3: #99F6E4;
+}
+[data-mode="dark"][data-theme="sand"] {
+  --accent: #FBBF24;
+  --accent-2: #F59E0B;
+  --accent-3: #FCD34D;
+}
+[data-mode="dark"]:not([data-theme="indigo"]):not([data-theme="reed"]):not([data-theme="sand"]) {
+  --accent: #FB923C;
+  --accent-2: #FDBA74;
+  --accent-3: #FED7AA;
+}
+
+/* ============================================================ BASE ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+button { font: inherit; cursor: pointer; color: inherit; background: none; border: none; }
+input, textarea { font: inherit; color: inherit; }
+
+/* ============================================================ NUBIAN SCRIPT ============================================================ */
+@font-face {
+  font-family: 'NubianIbrim';
+  src: local('Georgia');
+  font-display: swap;
+}
+
+.nubian {
+  font-family: var(--font-script);
+  letter-spacing: 0.03em;
+}
+
+/* Nubian-style decorative glyph blocks (geometric) */
+.glyph-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+}
+
+/* ============================================================ APP CHROME ============================================================ */
+.app {
+  width: 100%;
+  min-height: 100%;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative corner pattern — subtle Nubian motif */
+.corner-pattern {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* ============================================================ COMPONENTS ============================================================ */
+.surface {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+
+.surface-2 {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 22px;
+  border-radius: var(--r-md);
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  transition: transform 120ms cubic-bezier(.2,.8,.2,1), opacity 160ms;
+  border: 1px solid var(--text);
+}
+.btn:hover { opacity: 0.9; }
+.btn:active { transform: scale(0.97); }
+
+.btn-accent {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-on-accent);
+}
+[data-mode="dark"] .btn-accent { color: #15130F; }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border-2);
+}
+.btn-ghost:hover { background: var(--surface-2); }
+
+/* ============================================================ ANIMATIONS ============================================================ */
+@keyframes fadein { from { opacity: 0.5; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+@keyframes pulse-soft {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
+}
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+@keyframes slide-up { from { opacity: 0.5; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes scale-in { from { opacity: 0.5; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+@keyframes shake-x {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+@keyframes confetti-fall {
+  to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+@keyframes orbit {
+  to { transform: rotate(360deg); }
+}
+
+/* Resting state is fully visible. Animations only enhance; if the keyframes
+   never advance (e.g. a frozen iframe timeline), elements still render. */
+.fade-in { opacity: 1; animation: fadein 0.4s cubic-bezier(.2,.8,.2,1); }
+.slide-up { opacity: 1; animation: slide-up 0.5s cubic-bezier(.2,.8,.2,1); }
+.scale-in { opacity: 1; animation: scale-in 0.34s cubic-bezier(.34,1.56,.64,1); }
+.shake { animation: shake-x 0.5s ease both; }
+
+/* ============================================================ SCROLL ============================================================ */
+::-webkit-scrollbar { width: 0; height: 0; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ============================================================ UTILITY CLASSES (Tailwind-style) ============================================================ */
+.flex { display: flex; }
+.flex-1 { flex: 1 1 0%; min-width: 0; }
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.items-center { align-items: center; }
+.items-end { align-items: flex-end; }
+.items-baseline { align-items: baseline; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.gap-1 { gap: 4px; }
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.gap-\[3px\] { gap: 3px; }
+.mt-2 { margin-top: 8px; }
+.mt-3 { margin-top: 12px; }
+.text-center { text-align: center; }
+.relative { position: relative; }
+
+/* ============================================================ FOCUS ============================================================ */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ============================================================ NUBIAN PATTERN BG ============================================================ */
+/* A subtle repeating geometric pattern inspired by Nubian house facades */
+.nubian-pattern {
+  background-image:
+    radial-gradient(circle at 25% 50%, var(--accent) 1.5px, transparent 1.6px),
+    radial-gradient(circle at 75% 50%, var(--accent) 1.5px, transparent 1.6px);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+  opacity: 0.08;
+}
+
+/* Diamond pattern (Nubian motif) */
+.diamond-band {
+  --d: 16px;
+  background:
+    linear-gradient(45deg, var(--accent) 25%, transparent 25%) 0 0/var(--d) var(--d),
+    linear-gradient(-45deg, var(--accent) 25%, transparent 25%) 0 0/var(--d) var(--d),
+    linear-gradient(45deg, transparent 75%, var(--accent) 75%) 0 0/var(--d) var(--d),
+    linear-gradient(-45deg, transparent 75%, var(--accent) 75%) 0 0/var(--d) var(--d);
+  opacity: 0.18;
+}
