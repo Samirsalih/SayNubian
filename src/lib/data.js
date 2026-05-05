@@ -78,11 +78,101 @@ export const PHRASES = [
   { en: 'my name is…', nub: 'aiyi nem-ai…', script: 'ⲁⲓⲩⲓ ⲛⲉⲙ-ⲁⲓ…', use: 'introduction' },
 ];
 
+/* DIALOGS — wired up to the actual Napata recordings (page 1-6 from
+   napata.org's Nubian Language CD). Titles and English glosses below
+   were derived from the original site's text-image filenames; the
+   `audio` paths point to MP3s in public/audio/dialogs/ that ship in
+   both the web bundle and the Capacitor native apps. */
+const DIALOG_DIR = 'audio/dialogs';
+
 export const DIALOGS = [
-  { id: 1, title: 'Meeting Someone', theme: 'First introduction', minutes: 3, lines: 8 },
-  { id: 2, title: 'Health & Food', theme: 'A doctor visit', minutes: 2, lines: 9 },
-  { id: 3, title: 'Home & People', theme: 'Family at home', minutes: 2, lines: 7 },
-  { id: 4, title: 'At the Market', theme: 'Shopping for cloth', minutes: 3, lines: 10 },
+  {
+    id: 1,
+    title: 'Meeting Someone',
+    theme: 'First introduction',
+    minutes: 2,
+    audio: `${DIALOG_DIR}/page2/dial2.mp3`,
+    lines: [
+      { en: 'Come here.',                  audio: `${DIALOG_DIR}/page2/ds21.mp3` },
+      { en: 'What is your name?',          audio: `${DIALOG_DIR}/page2/ds22.mp3` },
+      { en: 'What do you want?',           audio: `${DIALOG_DIR}/page2/ds23.mp3` },
+      { en: 'Where did you come from?',    audio: `${DIALOG_DIR}/page2/ds24.mp3` },
+      { en: 'When did you come?',          audio: `${DIALOG_DIR}/page2/ds25.mp3` },
+      { en: 'Why did you come?',           audio: `${DIALOG_DIR}/page2/ds26.mp3` },
+      { en: 'With what did you come?',     audio: `${DIALOG_DIR}/page2/ds27.mp3` },
+      { en: 'Who came with you?',          audio: `${DIALOG_DIR}/page2/ds28.mp3` },
+    ],
+  },
+  {
+    id: 2,
+    title: 'Health & Food',
+    theme: 'A doctor visit',
+    minutes: 2,
+    audio: `${DIALOG_DIR}/page1/dial1.mp3`,
+    lines: [
+      { en: 'How are you?',                audio: `${DIALOG_DIR}/page1/ds11.mp3` },
+      { en: 'What is hurting you?',        audio: `${DIALOG_DIR}/page1/ds12.mp3` },
+      { en: 'Have you been to a doctor?',  audio: `${DIALOG_DIR}/page1/ds13.mp3` },
+      { en: 'What did the doctor say?',    audio: `${DIALOG_DIR}/page1/ds14.mp3` },
+      { en: 'Are you hungry?',             audio: `${DIALOG_DIR}/page1/ds15.mp3` },
+      { en: 'Are you thirsty for water?',  audio: `${DIALOG_DIR}/page1/ds16.mp3` },
+      { en: 'Bring me some water.',        audio: `${DIALOG_DIR}/page1/ds17.mp3` },
+      { en: 'A lot of water.',             audio: `${DIALOG_DIR}/page1/ds18.mp3` },
+      { en: 'Not enough food.',            audio: `${DIALOG_DIR}/page1/ds19.mp3` },
+    ],
+  },
+  {
+    id: 3,
+    title: 'Home & People',
+    theme: 'Family and friends',
+    minutes: 2,
+    audio: `${DIALOG_DIR}/page3/dial3.mp3`,
+    lines: [
+      { en: 'Where do you live?',          audio: `${DIALOG_DIR}/page3/ds31.mp3` },
+      { en: 'With whom do you live?',      audio: `${DIALOG_DIR}/page3/ds32.mp3` },
+      { en: 'Is your dad home?',           audio: `${DIALOG_DIR}/page3/ds33.mp3` },
+      { en: 'He is travelling.',           audio: `${DIALOG_DIR}/page3/ds34.mp3` },
+      { en: 'Have you seen Ali?',          audio: `${DIALOG_DIR}/page3/ds35.mp3` },
+      { en: 'Where is he now?',            audio: `${DIALOG_DIR}/page3/ds36.mp3` },
+      { en: 'What is he doing?',           audio: `${DIALOG_DIR}/page3/ds37.mp3` },
+    ],
+  },
+  {
+    id: 4,
+    title: 'Plans & Money',
+    theme: 'Daily life and visits',
+    minutes: 2,
+    audio: `${DIALOG_DIR}/page4/dial4.mp3`,
+    lines: [
+      { en: 'Can you write?',              audio: `${DIALOG_DIR}/page4/ds41.mp3` },
+      { en: 'Can you swim?',               audio: `${DIALOG_DIR}/page4/ds42.mp3` },
+      { en: "Why didn't you learn?",       audio: `${DIALOG_DIR}/page4/ds43.mp3` },
+      { en: 'Do you have money?',          audio: `${DIALOG_DIR}/page4/ds44.mp3` },
+      { en: 'What did you buy?',           audio: `${DIALOG_DIR}/page4/ds45.mp3` },
+      { en: 'How much did it cost?',       audio: `${DIALOG_DIR}/page4/ds46.mp3` },
+      { en: 'I will visit you tomorrow.',  audio: `${DIALOG_DIR}/page4/ds47.mp3` },
+      { en: 'I will come at night.',       audio: `${DIALOG_DIR}/page4/ds48.mp3` },
+      { en: 'Wait for me at the house.',   audio: `${DIALOG_DIR}/page4/ds49.mp3` },
+    ],
+  },
+  {
+    id: 5,
+    title: 'The Dog and the Cat',
+    theme: 'Pets and animals',
+    minutes: 2,
+    audio: `${DIALOG_DIR}/page6/dial6.mp3`,
+    lines: [
+      { en: 'The dog hates the cat.',      audio: `${DIALOG_DIR}/page6/ds61.mp3` },
+      { en: 'Get that dog out.',           audio: `${DIALOG_DIR}/page6/ds62.mp3` },
+      { en: 'Let it go out.',              audio: `${DIALOG_DIR}/page6/ds63.mp3` },
+      { en: 'Let it sleep.',               audio: `${DIALOG_DIR}/page6/ds64.mp3` },
+      { en: 'The dog is better than the cat.', audio: `${DIALOG_DIR}/page6/ds65.mp3` },
+      { en: 'Who killed the cat?',         audio: `${DIALOG_DIR}/page6/ds66.mp3` },
+      { en: 'Who hit the cat?',            audio: `${DIALOG_DIR}/page6/ds67.mp3` },
+      { en: 'Do not hit.',                 audio: `${DIALOG_DIR}/page6/ds68.mp3` },
+      { en: 'Let it live.',                audio: `${DIALOG_DIR}/page6/ds69.mp3` },
+    ],
+  },
 ];
 
 export const STAGES = [

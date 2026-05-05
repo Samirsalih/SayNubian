@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Icon, Waveform } from '../lib/primitives.jsx';
 import { ALPHABET, DIALOGS } from '../lib/data.js';
-import { speak, cancelSpeech, pronounce } from '../lib/audio.js';
+import { speak, cancelSpeech, pronounce, playAudio } from '../lib/audio.js';
 
 export default function Sounds() {
   const [tab, setTab] = useState('alphabet');
   const [playGlyph, setPlayGlyph] = useState(null);
-  const [playDialog, setPlayDialog] = useState(null);
+  const [openDialogId, setOpenDialogId] = useState(null);
 
   function handleGlyph(g) {
     if (playGlyph === g.glyph) {
@@ -16,16 +16,6 @@ export default function Sounds() {
     }
     setPlayGlyph(g.glyph);
     pronounce(g, { onEnd: () => setPlayGlyph(p => (p === g.glyph ? null : p)) });
-  }
-
-  function handleDialog(d) {
-    if (playDialog === d.id) {
-      cancelSpeech();
-      setPlayDialog(null);
-      return;
-    }
-    setPlayDialog(d.id);
-    speak('ma arrik?', { onEnd: () => setPlayDialog(p => (p === d.id ? null : p)) });
   }
 
   return (
@@ -90,48 +80,120 @@ export default function Sounds() {
 
       {tab === 'dialogues' && (
         <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {DIALOGS.map(d => {
-            const active = playDialog === d.id;
+          {DIALOGS.map(d => (
+            <DialogCard
+              key={d.id}
+              dialog={d}
+              open={openDialogId === d.id}
+              onToggle={() => setOpenDialogId(openDialogId === d.id ? null : d.id)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DialogCard({ dialog, open, onToggle }) {
+  const [playingFull, setPlayingFull] = useState(false);
+  const [playingLine, setPlayingLine] = useState(null);
+  const audioRef = useRef(null);
+
+  function stopAll() {
+    if (audioRef.current) { try { audioRef.current.pause(); } catch {} audioRef.current = null; }
+    setPlayingFull(false);
+    setPlayingLine(null);
+  }
+
+  useEffect(() => () => stopAll(), []);
+
+  function playFull(e) {
+    e?.stopPropagation();
+    if (playingFull) { stopAll(); return; }
+    stopAll();
+    setPlayingFull(true);
+    audioRef.current = playAudio(dialog.audio, {
+      onEnd: () => { setPlayingFull(false); audioRef.current = null; },
+    });
+  }
+
+  function playLine(idx) {
+    if (playingLine === idx) { stopAll(); return; }
+    stopAll();
+    setPlayingLine(idx);
+    audioRef.current = playAudio(dialog.lines[idx].audio, {
+      onEnd: () => { setPlayingLine(p => (p === idx ? null : p)); audioRef.current = null; },
+    });
+  }
+
+  return (
+    <div style={{
+      borderRadius: 22,
+      background: 'var(--surface)',
+      border: `1px solid ${open ? 'var(--accent)' : 'var(--border)'}`,
+      padding: 16,
+      transition: 'all 200ms',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <button onClick={playFull} style={{
+          width: 52, height: 52, borderRadius: '50%',
+          background: playingFull ? 'var(--accent)' : 'var(--accent-soft)',
+          color: playingFull ? 'white' : 'var(--accent)',
+          display: 'grid', placeItems: 'center', flexShrink: 0, border: 'none',
+        }}>
+          <Icon name={playingFull ? 'pause' : 'play'} size={22} color={playingFull ? 'white' : 'var(--accent)'} />
+        </button>
+        <button onClick={onToggle} style={{
+          flex: 1, minWidth: 0, textAlign: 'left',
+          background: 'transparent', border: 'none', padding: 0,
+        }}>
+          <div style={{ fontSize: 16, fontWeight: 700 }}>{dialog.title}</div>
+          <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{dialog.theme}</div>
+        </button>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--text-3)' }}>~{dialog.minutes} min</div>
+          <div style={{ fontSize: 10, color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{dialog.lines.length} LINES</div>
+        </div>
+        <Icon name={open ? 'chevron-down' : 'chevron-right'} size={16} color="var(--text-3)" />
+      </div>
+
+      <div style={{ marginTop: 12 }}>
+        <Waveform seed={dialog.id * 13} bars={50} height={24} progress={playingFull ? 0.4 : 0} active={playingFull} />
+      </div>
+
+      {open && (
+        <div className="slide-up" style={{
+          marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6,
+        }}>
+          {dialog.lines.map((line, i) => {
+            const active = playingLine === i;
             return (
-              <div key={d.id} style={{
-                borderRadius: 22,
-                background: 'var(--surface)',
+              <button key={i} onClick={() => playLine(i)} style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '10px 12px', borderRadius: 12,
+                background: active ? 'var(--accent-soft)' : 'var(--surface-2)',
                 border: `1px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
-                padding: 16,
-                transition: 'all 200ms',
+                textAlign: 'left',
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <button onClick={() => handleDialog(d)} style={{
-                    width: 52, height: 52, borderRadius: '50%',
-                    background: active ? 'var(--accent)' : 'var(--accent-soft)',
-                    color: active ? 'white' : 'var(--accent)',
-                    display: 'grid', placeItems: 'center', flexShrink: 0,
-                  }}>
-                    <Icon name={active ? 'pause' : 'play'} size={22} color={active ? 'white' : 'var(--accent)'} />
-                  </button>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 16, fontWeight: 700 }}>{d.title}</div>
-                    <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{d.theme}</div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--text-3)' }}>{d.minutes}:00</div>
-                    <div style={{ fontSize: 10, color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{d.lines} LINES</div>
-                  </div>
+                <div style={{
+                  width: 30, height: 30, borderRadius: '50%',
+                  background: active ? 'var(--accent)' : 'var(--surface)',
+                  border: `1px solid ${active ? 'var(--accent)' : 'var(--border-2)'}`,
+                  display: 'grid', placeItems: 'center', flexShrink: 0,
+                }}>
+                  <Icon name={active ? 'pause' : 'play'} size={12} color={active ? 'white' : 'var(--accent)'} />
                 </div>
-                <div style={{ marginTop: 12 }}>
-                  <Waveform seed={d.id * 13} bars={50} height={24} progress={active ? 0.4 : 0} active={active} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontSize: 14, fontFamily: 'var(--font-serif)', fontStyle: 'italic',
+                    color: 'var(--text)',
+                  }}>"{line.en}"</div>
                 </div>
-                {active && (
-                  <div className="slide-up" style={{
-                    marginTop: 12, padding: 12, borderRadius: 14,
-                    background: 'var(--surface-2)', border: '1px solid var(--border)',
-                  }}>
-                    <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--accent)', fontWeight: 700, letterSpacing: '0.12em', marginBottom: 4 }}>NOW</div>
-                    <div className="nubian" style={{ fontSize: 18 }}>ⲙⲁ ⲁⲣⲣⲓⲕ?</div>
-                    <div style={{ fontSize: 13, fontFamily: 'var(--font-serif)', fontStyle: 'italic', color: 'var(--text-2)' }}>"How are you?"</div>
-                  </div>
-                )}
-              </div>
+                <span style={{
+                  fontSize: 10, fontFamily: 'var(--font-mono)', fontWeight: 700,
+                  color: 'var(--text-3)', letterSpacing: '0.08em',
+                }}>{String(i + 1).padStart(2, '0')}</span>
+              </button>
             );
           })}
         </div>
