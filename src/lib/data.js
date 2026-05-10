@@ -205,9 +205,9 @@ export const STAGES = [
     glyph: 'ⲃⲁ', color: 'var(--gold)',
     why: 'Sounds combine into syllables — the building block of every word.',
     units: [
-      { id: 'cv', title: 'CV blends', lessons: 3, done: 0, status: 'locked', desc: 'ba, da, ka, ma…' },
-      { id: 'cvc', title: 'CVC blends', lessons: 3, done: 0, status: 'locked', desc: 'man, bag, tol…' },
-      { id: 'rhythm', title: 'Stress & rhythm', lessons: 2, done: 0, status: 'locked', desc: 'where the beat falls' },
+      { id: 'cv', title: 'CV blends', lessons: 3, done: 0, status: 'unlocked', desc: 'ba, da, ka, ma…' },
+      { id: 'cvc', title: 'CVC blends', lessons: 3, done: 0, status: 'unlocked', desc: 'man, bag, tol…' },
+      { id: 'rhythm', title: 'Stress & rhythm', lessons: 2, done: 0, status: 'unlocked', desc: 'where the beat falls' },
     ],
   },
   {
@@ -215,9 +215,9 @@ export const STAGES = [
     glyph: 'ⲙⲁ', color: 'var(--indigo)',
     why: 'Build a core vocabulary of high-utility words.',
     units: [
-      { id: 'basics', title: 'Basics', lessons: 4, done: 0, status: 'locked', desc: 'mother · water · house' },
-      { id: 'body', title: 'Your body', lessons: 3, done: 0, status: 'locked', desc: 'eye · hand · foot' },
-      { id: 'feelings', title: 'Feelings', lessons: 3, done: 0, status: 'locked', desc: 'happy · tired · sick' },
+      { id: 'basics', title: 'Basics', lessons: 4, done: 0, status: 'unlocked', desc: 'mother · water · house' },
+      { id: 'body', title: 'Your body', lessons: 3, done: 0, status: 'unlocked', desc: 'eye · hand · foot' },
+      { id: 'feelings', title: 'Feelings', lessons: 3, done: 0, status: 'unlocked', desc: 'happy · tired · sick' },
     ],
   },
   {
@@ -225,8 +225,8 @@ export const STAGES = [
     glyph: 'ⲁϣ', color: 'var(--teal)',
     why: 'Fixed expressions you can use today.',
     units: [
-      { id: 'greet', title: 'Greetings', lessons: 3, done: 0, status: 'locked', desc: 'good morning · thank you' },
-      { id: 'intro', title: 'Introductions', lessons: 2, done: 0, status: 'locked', desc: 'my name is…' },
+      { id: 'greet', title: 'Greetings', lessons: 3, done: 0, status: 'unlocked', desc: 'good morning · thank you' },
+      { id: 'intro', title: 'Introductions', lessons: 2, done: 0, status: 'unlocked', desc: 'my name is…' },
     ],
   },
   {
