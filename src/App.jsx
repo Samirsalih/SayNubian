@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { TopBar, TabBar, Icon } from './lib/primitives.jsx';
 import Home from './screens/Home.jsx';
 import { Lesson, LessonComplete } from './screens/Lesson.jsx';
@@ -7,6 +7,12 @@ import Sounds from './screens/Sounds.jsx';
 import Speak from './screens/Speak.jsx';
 import Chat from './screens/Chat.jsx';
 import { STAGES, DIALECTS, DEFAULT_DIALECT } from './lib/data.js';
+
+const Admin = lazy(() => import('./screens/Admin.jsx'));
+
+function isAdminHash() {
+  return typeof window !== 'undefined' && window.location.hash === '#admin';
+}
 
 const THEMES = ['nile', 'sand', 'indigo', 'reed'];
 
@@ -26,6 +32,20 @@ export default function App() {
   const [prefs, setPrefs] = useState(loadPrefs);
   const [tab, setTab] = useState('learn');
   const [screen, setScreen] = useState('home');
+  const [adminMode, setAdminMode] = useState(isAdminHash);
+
+  useEffect(() => {
+    const sync = () => setAdminMode(isAdminHash());
+    window.addEventListener('hashchange', sync);
+    return () => window.removeEventListener('hashchange', sync);
+  }, []);
+
+  function exitAdmin() {
+    if (window.location.hash) {
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+    setAdminMode(false);
+  }
   const [activeStage, setActiveStage] = useState(null);
   const [activeUnit, setActiveUnit] = useState(null);
   const [lessonResult, setLessonResult] = useState(null);
@@ -110,10 +130,23 @@ export default function App() {
       overflow: 'hidden',
     }}>
       <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
-        {body}
+        {adminMode ? (
+          <Suspense fallback={<AdminLoading />}>
+            <Admin onExit={exitAdmin} />
+          </Suspense>
+        ) : body}
       </div>
-      {showSettings && <SettingsSheet prefs={prefs} setPref={setPref} onClose={() => setShowSettings(false)} />}
+      {!adminMode && showSettings && <SettingsSheet prefs={prefs} setPref={setPref} onClose={() => setShowSettings(false)} onOpenAdmin={() => { window.location.hash = '#admin'; setAdminMode(true); }} />}
     </div>
+  );
+}
+
+function AdminLoading() {
+  return (
+    <div style={{
+      width: '100%', height: '100%', display: 'grid', placeItems: 'center',
+      color: 'var(--text-3)', fontSize: 13, fontFamily: 'var(--font-mono)',
+    }}>Loading admin…</div>
   );
 }
 
@@ -138,7 +171,7 @@ function TopBarWithSettings({ streak, xp, hearts, onSettings }) {
   );
 }
 
-function SettingsSheet({ prefs, setPref, onClose }) {
+function SettingsSheet({ prefs, setPref, onClose, onOpenAdmin }) {
   return (
     <div style={{
       position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)',
@@ -242,6 +275,23 @@ function SettingsSheet({ prefs, setPref, onClose }) {
             style={{ width: '100%', accentColor: 'var(--accent)' }}
           />
         </div>
+
+        {onOpenAdmin && (
+          <button
+            onClick={() => { onClose(); onOpenAdmin(); }}
+            style={{
+              marginTop: 20, width: '100%', padding: '10px 14px',
+              borderRadius: 12, background: 'var(--surface-2)',
+              border: '1px dashed var(--border-2)', color: 'var(--text-2)',
+              fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-mono)',
+              letterSpacing: '0.1em', display: 'inline-flex',
+              alignItems: 'center', justifyContent: 'center', gap: 8,
+            }}
+          >
+            <Icon name="lock" size={12} color="var(--text-3)" />
+            OPEN ADMIN TOOL
+          </button>
+        )}
       </div>
     </div>
   );

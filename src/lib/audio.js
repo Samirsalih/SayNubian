@@ -87,6 +87,7 @@ function pickMime() {
 export function useRecorder() {
   const [recording, setRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState(null);
+  const [audioBlob, setAudioBlob] = useState(null);
   const [error, setError] = useState(null);
   const recorderRef = useRef(null);
   const chunksRef = useRef([]);
@@ -117,6 +118,7 @@ export function useRecorder() {
       URL.revokeObjectURL(urlRef.current);
       urlRef.current = null;
       setAudioUrl(null);
+      setAudioBlob(null);
     }
     if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
       setError('Microphone not available on this device.');
@@ -133,6 +135,7 @@ export function useRecorder() {
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' });
         const url = URL.createObjectURL(blob);
         urlRef.current = url;
+        setAudioBlob(blob);
         setAudioUrl(url);
         stopStream();
       };
@@ -160,10 +163,11 @@ export function useRecorder() {
       urlRef.current = null;
     }
     setAudioUrl(null);
+    setAudioBlob(null);
     setError(null);
   }, []);
 
-  return { recording, audioUrl, error, start, stop, reset };
+  return { recording, audioUrl, audioBlob, error, start, stop, reset };
 }
 
 /* Play an Audio URL. Returns the HTMLAudioElement so callers can hook events. */
